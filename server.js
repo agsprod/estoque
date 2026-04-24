@@ -7,16 +7,13 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
-// Banco simples em memória
 let produtos = [];
 let idAtual = 1;
 
-// Listar
 app.get('/produtos', (req, res) => {
     res.json(produtos);
 });
 
-// Adicionar
 app.post('/produtos', (req, res) => {
     const { nome, quantidade } = req.body;
 
@@ -30,7 +27,6 @@ app.post('/produtos', (req, res) => {
     res.json(novo);
 });
 
-// Atualizar
 app.put('/produtos/:id', (req, res) => {
     const { quantidade } = req.body;
     const id = parseInt(req.params.id);
@@ -43,7 +39,6 @@ app.put('/produtos/:id', (req, res) => {
     res.send('Atualizado');
 });
 
-// Deletar
 app.delete('/produtos/:id', (req, res) => {
     const id = parseInt(req.params.id);
     produtos = produtos.filter(p => p.id !== id);
