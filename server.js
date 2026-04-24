@@ -1,5 +1,4 @@
 const express = require('express');
-const Database = require('better-sqlite3');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 
@@ -8,49 +7,46 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
-const db = new Database('estoque.db');
+// Banco simples em memória
+let produtos = [];
+let idAtual = 1;
 
-// Criar tabela
-db.prepare(`
-CREATE TABLE IF NOT EXISTS produtos (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nome TEXT,
-    quantidade INTEGER
-)
-`).run();
-
-// Listar produtos
+// Listar
 app.get('/produtos', (req, res) => {
-    const rows = db.prepare('SELECT * FROM produtos').all();
-    res.json(rows);
+    res.json(produtos);
 });
 
-// Adicionar produto
+// Adicionar
 app.post('/produtos', (req, res) => {
     const { nome, quantidade } = req.body;
 
-    const result = db.prepare(
-        'INSERT INTO produtos (nome, quantidade) VALUES (?, ?)'
-    ).run(nome, quantidade);
+    const novo = {
+        id: idAtual++,
+        nome,
+        quantidade
+    };
 
-    res.json({ id: result.lastInsertRowid });
+    produtos.push(novo);
+    res.json(novo);
 });
 
-// Atualizar estoque
+// Atualizar
 app.put('/produtos/:id', (req, res) => {
     const { quantidade } = req.body;
+    const id = parseInt(req.params.id);
 
-    db.prepare(
-        'UPDATE produtos SET quantidade = ? WHERE id = ?'
-    ).run(quantidade, req.params.id);
+    const produto = produtos.find(p => p.id === id);
+    if (produto) {
+        produto.quantidade = quantidade;
+    }
 
     res.send('Atualizado');
 });
 
-// Deletar produto
+// Deletar
 app.delete('/produtos/:id', (req, res) => {
-    db.prepare('DELETE FROM produtos WHERE id = ?')
-      .run(req.params.id);
+    const id = parseInt(req.params.id);
+    produtos = produtos.filter(p => p.id !== id);
 
     res.send('Deletado');
 });
