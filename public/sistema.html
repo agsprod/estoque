@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Estoque</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #0f172a;
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .card {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 6px;
+            border: none;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 10px;
+            padding: 12px;
+            border-radius: 6px;
+            border: none;
+            background: #3b82f6;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2563eb;
+        }
+
+        .lista li {
+            background: #334155;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .botoes button {
+            width: auto;
+            margin-left: 5px;
+            padding: 6px 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <h1>📦 Controle de Estoque</h1>
+
+    <div class="card">
+        <input type="text" id="nome" placeholder="Nome do produto">
+        <input type="number" id="quantidade" placeholder="Quantidade">
+        <button onclick="adicionar()">Adicionar Produto</button>
+    </div>
+
+    <div class="card">
+        <h2>Produtos</h2>
+        <ul id="lista" class="lista"></ul>
+    </div>
+
+</div>
+
+<script>
+const API = 'http://localhost:3000/produtos';
+
+function carregar() {
+    fetch(API)
+        .then(res => res.json())
+        .then(data => {
+            const lista = document.getElementById('lista');
+            lista.innerHTML = '';
+
+            data.forEach(p => {
+                lista.innerHTML += `
+                    <li>
+                        <span>${p.nome} (${p.quantidade})</span>
+                        <div class="botoes">
+                            <button onclick="alterar(${p.id}, ${p.quantidade + 1})">➕</button>
+                            <button onclick="alterar(${p.id}, ${p.quantidade - 1})">➖</button>
+                            <button onclick="remover(${p.id})">🗑</button>
+                        </div>
+                    </li>
+                `;
+            });
+        });
+}
+
+function adicionar() {
+    const nome = document.getElementById('nome').value;
+    const quantidade = document.getElementById('quantidade').value;
+
+    if (!nome || !quantidade) {
+        alert("Preencha os campos!");
+        return;
+    }
+
+    fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome, quantidade })
+    }).then(() => {
+        document.getElementById('nome').value = '';
+        document.getElementById('quantidade').value = '';
+        carregar();
+    });
+}
+
+function remover(id) {
+    fetch(API + '/' + id, {
+        method: 'DELETE'
+    }).then(() => carregar());
+}
+
+function alterar(id, quantidade) {
+
+    if (quantidade < 0) {
+        alert("Estoque não pode ser negativo!");
+        return;
+    }
+
+    fetch(API + '/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quantidade })
+    }).then(() => carregar());
+}
+
+carregar();
+</script>
+
+</body>
+</html>
